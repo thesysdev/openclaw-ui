@@ -1,0 +1,7 @@
+.git
+.DS_Store
+.env
+data
+node_modules
+npm-debug.log
+Dockerfile~

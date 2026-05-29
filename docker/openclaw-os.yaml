@@ -1,0 +1,63 @@
+# OpenClaw OS Docker bootstrap config.
+#
+# Edit this file before first start. The container applies it on every start.
+# Keep this file private if you paste API keys directly.
+
+gateway:
+  # Keep "lan" for Docker port publishing.
+  bind: lan
+  authMode: token
+
+  # Usually leave this blank. scripts/init-env.sh or scripts/init-env.ps1
+  # generates OPENCLAW_GATEWAY_TOKEN in .env and the container persists it.
+  authToken:
+
+  # Add reverse-proxy origins here, for example:
+  # allowedOrigins:
+  #   - https://openclaw.example.com
+
+model:
+  # Full model id: provider/model.
+  primary: openai/gpt-5.5
+
+  # Optional fallback order.
+  fallbacks: []
+
+  # off, minimal, low, medium, high, xhigh, adaptive, or max.
+  thinking: medium
+
+  # Container path exposed to the agent.
+  workspace: /home/node/.openclaw/workspace
+
+# Simple API-key setup. Values may be literal keys or env references such as ${OPENAI_API_KEY}.
+# Blank values are ignored.
+apiKeys:
+  openai: ${OPENAI_API_KEY}
+  anthropic:
+  openrouter:
+  google:
+
+# Optional custom/self-hosted providers.
+# Use host.docker.internal when the model server runs on the host machine.
+providers:
+  # ollama:
+  #   baseUrl: http://host.docker.internal:11434/v1
+  #   api: openai-completions
+  #   auth: api-key
+  #   apiKey: ollama
+  #   models:
+  #     - llama3.1
+  #
+  # openrouter:
+  #   baseUrl: https://openrouter.ai/api/v1
+  #   api: openai-completions
+  #   auth: api-key
+  #   apiKey: ${OPENROUTER_API_KEY}
+  #   models:
+  #     - openai/gpt-4.1
+
+# Advanced: define explicit auth profile ids.
+authProfiles: []
+  # - provider: openai
+  #   profileId: openai:docker
+  #   apiKey: ${OPENAI_API_KEY}

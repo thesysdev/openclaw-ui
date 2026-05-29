@@ -39,6 +39,24 @@ powershell -c "irm https://openui.com/openclaw-os/install.ps1 | iex"
 
 The installer downloads the latest source, builds the workspace UI, registers it as an OpenClaw plugin, restarts the gateway, and opens the dashboard in your browser.
 
+Docker alternative:
+
+```bash
+cd docker
+./scripts/init-env.sh
+docker compose up -d --build
+```
+
+Windows PowerShell:
+
+```powershell
+cd docker
+.\scripts\init-env.ps1
+docker compose up -d --build
+```
+
+The Docker install runs OpenClaw, preloads the OpenClaw OS plugin, and reads model/API-key settings from [`docker/openclaw-os.yaml`](./docker/openclaw-os.yaml). See [`docker/README.md`](./docker/README.md) for setup details, Windows notes, and the wrapper CLI commands.
+
 or through published package
 
 ```bash
