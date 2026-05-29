@@ -55,6 +55,9 @@ packages/claw-plugin/static/
 .env.local
 .env.*.local
 
+# Docker install state
+docker/data/
+
 # Logs
 *.log
 

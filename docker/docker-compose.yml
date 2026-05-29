@@ -1,0 +1,83 @@
+services:
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE:-openclaw-os:local}
+    build:
+      context: .
+      args:
+        OPENCLAW_VERSION: ${OPENCLAW_VERSION:-2026.5.27}
+        OPENCLAW_OS_PLUGIN_VERSION: ${OPENCLAW_OS_PLUGIN_VERSION:-0.1.5}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_GATEWAY_BIND: ${OPENCLAW_GATEWAY_BIND:-lan}
+      OPENCLAW_GATEWAY_AUTH_MODE: ${OPENCLAW_GATEWAY_AUTH_MODE:-token}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_GATEWAY_HOST_PORT: ${OPENCLAW_GATEWAY_HOST_PORT:-18789}
+      OPENCLAW_CONTROL_UI_EXTRA_ORIGINS: ${OPENCLAW_CONTROL_UI_EXTRA_ORIGINS:-}
+      OPENCLAW_BOOTSTRAP_CONFIG: /etc/openclaw-os/openclaw-os.yaml
+      OPENCLAW_OS_AUTO_INSTALL: ${OPENCLAW_OS_AUTO_INSTALL:-1}
+      OPENCLAW_OS_PLUGIN_SPEC: ${OPENCLAW_OS_PLUGIN_SPEC:-}
+      OPENCLAW_DISABLE_BONJOUR: ${OPENCLAW_DISABLE_BONJOUR:-1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TZ: ${OPENCLAW_TZ:-UTC}
+    volumes:
+      - ./openclaw-os.yaml:/etc/openclaw-os/openclaw-os.yaml:ro
+      - ${OPENCLAW_CONFIG_DIR:-./data/openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_AUTH_PROFILE_SECRET_DIR:-./data/openclaw-auth-profile-secrets}:/home/node/.config/openclaw
+    ports:
+      - "${OPENCLAW_GATEWAY_HOST_PORT:-18789}:18789"
+      - "${OPENCLAW_BRIDGE_HOST_PORT:-18790}:18790"
+      - "${OPENCLAW_MSTEAMS_HOST_PORT:-3978}:3978"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:-openclaw-os:local}
+    profiles:
+      - tools
+    network_mode: "service:openclaw-gateway"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_BOOTSTRAP_CONFIG: /etc/openclaw-os/openclaw-os.yaml
+      BROWSER: echo
+      TZ: ${OPENCLAW_TZ:-UTC}
+    volumes:
+      - ./openclaw-os.yaml:/etc/openclaw-os/openclaw-os.yaml:ro
+      - ${OPENCLAW_CONFIG_DIR:-./data/openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_AUTH_PROFILE_SECRET_DIR:-./data/openclaw-auth-profile-secrets}:/home/node/.config/openclaw
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    entrypoint: ["tini", "-s", "--", "docker-entrypoint.sh"]
+    command: ["cli", "--help"]
+    depends_on:
+      openclaw-gateway:
+        condition: service_healthy
